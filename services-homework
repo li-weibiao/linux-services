@@ -1,0 +1,389 @@
+作业
+01----------------------------------------
+
+1 简述Linux目录/boot、/dev、/etc、/home、/var、/tmp的用途
+
+参考答案
+
+    /boot：存放Linux内核、引导配置等启动文件。
+    /dev：存放硬盘、键盘、鼠标、光驱等各种设备文件。
+    /etc：存放各种配置文件、配置目录。
+    /home：存放普通用户的默认工作文件夹（即宿主目录、家目录）。
+    /var：存放日志文件、用户邮箱目录、进程运行数据等变化的文档。
+    /tmp：存放系统运行过程中使用的一些临时文件。
+
+2 使用date命令按“yyyy-mm-dd HH:MM”格式显示/设置日期时间
+
+参考答案
+
+按格式显示日期时间：
+
+    [root@svr7 ~]# date  +"%Y-%m-%d %H:%M"
+    2016-12-21 16:04
+
+按格式设置日期时间：
+
+    [root@svr7 ~]# date -s "2016-12-21 17:01"
+    2016年 12月 21日 星期三 17:01:00 CST
+
+3 简述yum客户端仓库配置文件的内容
+
+参考答案
+
+    [root@svr7 ~]# vim  /etc/yum.repos.d/自定义名称.repo 
+    [仓库ID]
+    name = 仓库描述
+    baseurl = 软件仓库的访问地址
+    gpgcheck = 0
+
+4 vim编辑器的删除、复制、粘贴操作
+
+使用vim编辑器时，在命令模式下按（ ）可删除当前光标行，按（ ）可复制当前行，按（ ）将剪贴板中的文本粘贴到当前行之后。
+
+参考答案
+
+使用vim编辑器时，在命令模式下按（ dd ）可删除当前光标行，按（ yy ）可复制当前行，按（ p ）将剪贴板中的文本粘贴到当前行之后。
+5 简述源码编译安装软件的主要步骤及各自的作用
+
+参考答案
+
+1）tar解包：解压、释放安装包内的文件
+
+2）./configure配置：针对当前系统环境指定安装目录、选择功能等设置。
+
+3）make编译：将源代码编译成二进制的可执行程序、库文件等数据。
+
+4）make install：将编译好的程序文件、配置文档等复制到对应的安装目录。
+
+
+02--------------------------------------------------------------
+
+
+1 在Linux上快速构建KVM服务器需要安装哪些软件
+
+参考答案
+
+qemu-kvm为 kvm 提供底层仿真支持
+
+libvirt-daemon为libvirtd 守护进程，管理虚拟机
+
+libvirt-client为用户端软件，提供客户端管理命令
+
+libvirt-daemon-driver-qemu为libvirtd 连接 qemu 的驱动
+
+virt-manager为图形管理工具
+2 常用的virsh管理虚拟机的指令有哪些
+
+参考答案
+
+q查看KVM节点（服务器）信息
+
+virsh nodeinfo
+
+列出虚拟机
+
+virsh list [--all]
+
+列出虚拟网络
+
+virsh net-list [--all]
+
+查看指定虚拟机的信息
+
+virsh dominfo 虚拟机名称
+
+运行|重启|关闭指定的虚拟机
+
+virsh start|reboot|shutdown 虚拟机名称
+
+强制关闭指定的虚拟机
+
+virsh destroy 虚拟机名称
+
+将指定的虚拟机设为开机自动运行
+
+virsh autostart [--disable] 虚拟机名称
+3 KVM虚拟机的XML配置文件主要包括哪些内容
+
+参考答案
+
+记录每个虚拟机的详细参数。如：名称、UUID、内存、 CPU、磁盘、……
+
+XML文件的默认位置：/etc/libvirt/qemu/虚拟机名.xml
+4 如何通过XML描述文件来新建一台虚拟机
+
+参考答案
+
+    [root@svr7 ~]# virsh  dumpxml  已存在虚拟机名称  >  new.xml    //备份XML文件
+    [root@svr7 ~]# vim  new.xml 
+    <domain type='kvm' id='1'>
+      <name>新虚拟机名称</name>                                  //改名称
+      <uuid>c33a4aad-c555-48b3-a0a9-893ad0b4775e</uuid>      //改UUID
+        <disk type='file' device='disk'>
+          <driver name='qemu' type='raw' cache='none'/>
+          <source file=‘/data/images/node1.img’/>             //指定磁盘
+          <mac address=‘52:54:00:56:77:88’/>                  //指定MAC
+          .. ..
+        </disk>
+    .. ..  
+    [root@svr7 ~]# virsh  define  new.xml                      //导入新虚拟机
+[root@svr7 ~]# virsh  list  --all
+
+
+03------------------------------------------------------
+
+
+1 简述DNS地址记录中类型NS、A的含义
+
+参考答案
+
+NS记录为域名服务器记录（本域权威DNS的FQDN）；
+
+A记录为正向解析记录（FQDN --> IP地址）。
+2 如何配置父DNS服务器实现子域授权
+
+要求如下：
+
+已知父DNS解析baidu.com域，配置子域解析bj.baidu.com域。
+
+父DNS服务器的域名为dns.baidu.com，地址为192.168.4.7。
+
+子DNS服务器的域名为dns.bj.baidu.com，地址为192.168.4.207。
+
+参考答案
+
+    [root@svr7 ~]# vim  /var/named/baidu.com.zone
+    .. ..
+    bj.baidu.com.         IN     NS         dns.bj.baidu.com.
+    dns.bj.baidu.com.     IN      A         192.168.4.207
+    [root@svr7 ~]# systemctl  restart  named
+
+3 对于DNS服务器来说，递归查询和迭代查询分别表示什么
+
+参考答案
+
+对于一台DNS服务器来说：
+
+若允许递归，则当客户端请求解析的域名非本DNS管辖时，本DNS会向其他DNS服务器代询；
+
+若不允许递归，则当客户端请求解析的域名非本DNS管辖时，本DNS会放弃代询 —— 但是，如果目标地址位于已知的某个授权子域，本DNS会告知客户端对应的子DNS服务器的地址信息（即迭代）。
+4 配置缓存DNS服务器时，为客户机提供的解析记录如何获取
+
+参考答案
+
+方式1，全局转发：将请求转发给指定的公共DNS，请求递归服务；
+
+方式2，根域迭代：依次向根、一级、二级……域的DNS服务器迭代。
+
+
+04------------------------------------------------------------
+
+1 描述BIND配置view视图的语法框架
+
+参考答案
+
+    view  "视图1" {
+        match-clients { 来源地址1; ...;  };
+        zone  "tedu.cn" IN {
+            .. ..
+        };
+    };
+    view  "视图2" {
+        match-clients { 来源地址2; ... ; };
+        zone  "tedu.cn"  IN {
+            .. ..
+        };
+    };
+    .. ..  
+
+2 RAID0、RAID1、RAID5、RAID6分别指什么，简述各自的特点
+
+参考答案
+
+RAID即廉价冗余磁盘阵列，指通过硬件/软件技术将多个较小/低速的磁盘整合成一个大磁盘使用的一种存储技术，其不仅可存储数据，还可以实现一定程度的冗余保障，具有“速度快、安全性高”的优势。
+
+RAID0、RAID1、RAID5的含义及特点如下：
+
+    RAID0：条带模式，由两个或两个以上的磁盘组成，同一份文档分散在不同的磁盘中，并行写入，提高写效率。
+    RAID1：镜像模式，由至少两个磁盘组成，同一份文件被分别写入到不同的磁盘中，每份磁盘数据一样，实现容错，提高读效率。
+    RAID5：分布式奇偶校验的高效阵列模式，结合RAID0和RAID1的好处，同时避免它们的缺点。需要至少3块大小相同的磁盘组成，其中1块盘的容量用来存储校验数据。
+    RAID6：高性价比/可靠模式，相当于扩展的RAID5阵列，提供2份独立校验方案。需要至少4块大小相同的磁盘组成，其中2块盘的容量用来存储校验数据。
+
+3 使用top命令监控进程
+
+执行“dd if=/dev/sda of=/dev/null &”命令，然后查找出系统中CPU占用最高的进程，并杀死此该进程。
+
+参考答案
+
+1）启用后台任务
+
+    [root@svr7 ~]# dd  if=/dev/zero  of=/dev/null  &
+    [1] 27691
+
+2）通过top命令对进程排名，默认情况下排第1位的进程CPU占用最高
+
+查看进程排名：
+
+    [root@svr7 ~]# top
+    top - 11:07:18 up 3 days, 14:44,  4 users,  load average: 0.23, 0.21, 0.09
+    Tasks: 150 total,   3 running, 146 sleeping,   0 stopped,   1 zombie
+    Cpu(s):  3.0%us, 16.2%sy,  0.0%ni,  0.0%id, 76.4%wa,  3.7%hi,  0.7%si,  0.0%st
+    Mem:   1023848k total,  1015420k used,     8428k free,   532008k buffers
+    Swap:  4056360k total,      200k used,  4056160k free,    82580k cached
+      PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND
+    27691 root      18   0 63204  600  504 R 19.7  0.1   0:04.38 dd
+      265 root      10  -5     0    0    0 S  0.7  0.0   0:02.42 kswapd0
+    27694 root      15   0 12764 1140  836 R  0.3  0.1   0:00.01 top
+        1 root      15   0 10372  696  588 S  0.0  0.1   0:01.31 init
+        2 root      RT  -5     0    0    0 S  0.0  0.0   0:00.00 migration/0
+        3 root      34  19     0    0    0 S  0.0  0.0   0:00.00 ksoftirqd/0
+        4 root      10  -5     0    0    0 S  0.0  0.0   2:33.94 events/0
+        5 root      10  -5     0    0    0 S  0.0  0.0   0:00.00 khelper
+       14 root      16  -5     0    0    0 S  0.0  0.0   0:00.00 kthread
+       18 root      10  -5     0    0    0 S  0.0  0.0   0:01.46 kblockd/0
+       19 root      20  -5     0    0    0 S  0.0  0.0   0:00.00 kacpid
+      187 root      19  -5     0    0    0 S  0.0  0.0   0:00.00 cqueue/0
+      190 root      10  -5     0    0    0 S  0.0  0.0   0:00.22 khubd
+      192 root      10  -5     0    0    0 S  0.0  0.0   0:00.00 kseriod
+      262 root      15   0     0    0    0 S  0.0  0.0   0:00.01 khungtaskd
+      263 root      25   0     0    0    0 S  0.0  0.0   0:00.00 pdflush
+      264 root      15   0     0    0    0 S  0.0  0.0   0:10.22 pdflush
+
+按k键输入要结束的进程id，等待杀死对应的进程：
+
+    .. ..
+    PID to kill: 27691
+    Kill PID 27691 with signal [15]:
+
+4 杀死名称以rh开头的所有进程
+
+参考答案
+
+1）找出目标进程
+
+    [root@svr7 ~]# pgrep -l ^rh
+    790 rhsmcertd
+    1308 rhnsd
+
+2）杀死这些进程
+
+    [root@svr7 ~]# pkill ^rh
+
+3）确认结果
+
+    [root@svr7 ~]# pgrep -l ^rh
+    [root@svr7 ~]#
+
+5 列出2016年12月份与系统服务httpd相关的日志消息
+
+参考答案
+
+使用journalctl命令，结合选项-u指定服务类别，结合选项--since、--until指定日期时间区间：
+
+    [root@svr7 ~]# journalctl  -u httpd  --since="2016-12-01" --until="2016-12-31 23:59:59"
+    -- Logs begin at 四 2016-12-15 10:39:14 CST, end at 三 2016-12-21 17:54:47 CST. --
+    12月 15 10:39:32 svr7.tedu.cn systemd[1]: Starting The Apache HTTP Server...
+    12月 15 10:39:35 svr7.tedu.cn httpd[792]: AH00557: httpd: apr_sockaddr_info_get() f
+    12月 15 10:39:35 svr7.tedu.cn httpd[792]: AH00558: httpd: Could not reliably determ
+    12月 15 10:39:35 svr7.tedu.cn systemd[1]: Started The Apache HTTP Server.
+    12月 15 11:05:05 svr7.tedu.cn systemd[1]: Started The Apache HTTP Server.
+    12月 15 11:05:06 svr7.tedu.cn systemd[1]: Started The Apache HTTP Server.
+    .. ..
+
+6 将Linux系统的默认运行级别设为文本模式
+
+参考答案
+
+1）修改默认运行级别（target）
+
+    [root@svr7 ~]# systemctl  set-default  multi-user.target 
+    Removed symlink /etc/systemd/system/default.target.
+    Created symlink from /etc/systemd/system/default.target to /usr/lib/systemd/system/multi-user.target.
+
+2）确认修改结果
+
+    [root@svr7 ~]# systemctl  get-default 
+    multi-user.target
+
+
+
+05------------------------------------------------------------------------------
+
+1 简述DHCP租期、作用域、地址池的含义
+
+参考答案
+
+租期：允许客户机租用IP地址的时间期限，单位为秒
+
+作用域：分配给客户机的IP地址所在的网段
+
+地址池：用来动态分配的IP地址的范围
+2 为了指引客户机访问PXE服务器，对应的DHCP配置是什么
+
+参考答案
+
+需要告知客户机TFTP引导服务器的地址、需要下载的启动文件名：
+
+         next-server  192.168.4.7;          //PXE引导服务器
+         filename  "pxelinux.0";             //引导文件名
+
+3 PXE服务器提供vmlinuz和initrd.img文件的作用分别是什么
+
+参考答案
+
+vmlinuz：为将要安装的客户机系统提供引导，并加载安装程序；
+
+initrd.img：为在客户机上加载并运行vmlinuz内核提供临时的Linux环境。
+4 简要说明PXE装机引导的基本过程
+
+参考答案
+
+    客户端向DHCP服务器请求分配IP地址；
+    DHCP服务器为客户端分配IP地址，告知Boot server；
+    客户端向Boot server请求下载启动文件；
+    Boot server向客户端提供启动文件；
+    客户端向文件共享服务器请求应答文件；
+    客户端根据应答文件信息，安装操作系统。
+
+5 使用system-config-kickstart工具时需要注意什么
+
+参考答案
+
+注意事项：
+
+1）运行此工具的客户机最好与将要安装的客户机使用相同的操作系统。
+
+2）仅配置对应的YUM源，源ID设为 development。
+
+3）可以加载应答文件模板/root/anaconda-ks.cfg再修改，提高效率。
+06-------------------------------------------------------
+
+
+1 简述rsync+SSH上/下行同步操作的命令用法
+
+参考答案
+
+下行：rsync [...] user@host:源目录 本地目录
+
+上行：rsync [...] 本地目录 user@host:目标目录
+2 简述如何实现无密码ssh远程控制
+
+参考答案
+
+首先利用ssh-keygen命令生成公钥与私钥，然后利用ssh-copy-id拷贝到对方
+3 使用inotifywait配置实时同步时，哪些事件是有必要监控的
+
+参考答案
+
+凡是会引起原始目录的内容发生变化的事件，都有必要监控，主要包括：
+
+1）modify：文档的内容变更
+
+2）attrib：文档的权限、归属、修改时间、访问控制列表等变更
+
+3）move：文档被改名、移出或移入
+
+4）create：在被监控的目录中增加了新的子目录或文档
+
+5）delete：在被监控的目录中删除了某个子目录或文档
+
